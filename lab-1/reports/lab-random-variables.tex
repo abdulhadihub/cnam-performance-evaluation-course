@@ -4,6 +4,7 @@
 \usepackage[english]{babel}
 \usepackage{graphicx,epstopdf,url}
 \usepackage{float}
+\usepackage{amsmath}
 
 \usepackage[top=0.8in, bottom=1in, left=1in, right=1in]{geometry}
 
@@ -40,6 +41,23 @@ All random number generation was performed using the NumPy library with a fixed 
     \item \textbf{Total Test Cases:} 20 (5 distributions $\times$ 4 sample sizes)
     \item \textbf{Histogram Binning:} Sturges rule (automatic bin calculation based on sample size)
     \item \textbf{Reproducibility:} All results verified by re-running with identical seed---identical outputs confirmed
+\end{itemize}
+
+\subsection{Code Repository}
+
+The complete source code for this laboratory is publicly available on GitHub:
+
+\begin{center}
+    \url{https://github.com/abdulhadihub/cnam-performance-evaluation-course/tree/main/lab-1}
+\end{center}
+
+The repository includes:
+\begin{itemize}
+    \item \texttt{code/random\_generator.py} - Random sample generation script
+    \item \texttt{code/plot\_histograms.py} - Histogram visualization script
+    \item \texttt{plots/} - Generated data files and histogram images
+    \item \texttt{README.md} - Quick start guide and usage instructions
+    \item \texttt{reports/} - This LaTeX report
 \end{itemize}
 
 \section{Results}
@@ -372,11 +390,11 @@ To verify reproducibility, the code was executed twice with the same seed (10):
 
 All generated statistics were validated against theoretical expectations:
 \begin{itemize}
-    \item \textbf{Uniform (int)}: Empirical mean $\approx 100$ (theoretical: exactly 100) ✓
-    \item \textbf{Uniform (double)}: Empirical mean $\approx 11.0$ (theoretical: exactly 11.0) ✓
-    \item \textbf{Normal}: Empirical mean $\approx 15$ (theoretical: exactly 15) ✓
-    \item \textbf{Exponential}: Empirical mean $\approx 0.05$ (theoretical: exactly 0.05) ✓
-    \item \textbf{Lognormal}: Empirical mean $\approx 12.4$ (theoretical: $\approx 12.18$) ✓
+    \item \textbf{Uniform (int)}: Empirical mean $\approx 100$ (theoretical: exactly 100) 
+    \item \textbf{Uniform (double)}: Empirical mean $\approx 11.0$ (theoretical: exactly 11.0) 
+    \item \textbf{Normal}: Empirical mean $\approx 15$ (theoretical: exactly 15) 
+    \item \textbf{Exponential}: Empirical mean $\approx 0.05$ (theoretical: exactly 0.05) 
+    \item \textbf{Lognormal}: Empirical mean $\approx 12.4$ (theoretical: $\approx 12.18$) 
 \end{itemize}
 
 \section{Conclusion}
