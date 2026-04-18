@@ -35,7 +35,7 @@ All random number generation was performed using the NumPy library with a fixed 
 \subsection{Methodology}
 
 \begin{itemize}
-    \item \textbf{Programming Language:} Python 3.9 with NumPy and Matplotlib
+    \item \textbf{Programming Language:} Python with NumPy and Matplotlib
     \item \textbf{Random Seed:} 10 (ensures reproducibility---same seed always produces identical sequences)
     \item \textbf{Sample Sizes:} $n = 10, 100, 1000, 10000$
     \item \textbf{Total Test Cases:} 20 (5 distributions $\times$ 4 sample sizes)
@@ -359,21 +359,21 @@ The convergence rate depends on the distribution. Uniform and exponential distri
 \subsection{Code Structure}
 
 \begin{itemize}
-    \item \textbf{Language:} Python 3.9 with NumPy 2.4.4 and Matplotlib 3.10.8
+    \item \textbf{Language:} Python with NumPy and Matplotlib
     \item \textbf{Generator Module:} `random\_generator.py`
-    \begin{itemize}
-        \item Defines 5 distribution functions
-        \item Sets seed to 10 for reproducibility
-        \item Generates all 20 test cases
-        \item Computes and displays statistics
-        \item Saves data to files for visualization
-    \end{itemize}
+          \begin{itemize}
+              \item Defines 5 distribution functions
+              \item Sets seed to 10 for reproducibility
+              \item Generates all 20 test cases
+              \item Computes and displays statistics
+              \item Saves data to files for visualization
+          \end{itemize}
     \item \textbf{Visualization Module:} `plot\_histograms.py`
-    \begin{itemize}
-        \item Reads raw data from files
-        \item Generates histograms using Sturges rule for bin calculation
-        \item Saves 20 PNG files with consistent styling
-    \end{itemize}
+          \begin{itemize}
+              \item Reads raw data from files
+              \item Generates histograms using Sturges rule for bin calculation
+              \item Saves 20 PNG files with consistent styling
+          \end{itemize}
 \end{itemize}
 
 \subsection{Reproducibility Verification}
@@ -390,11 +390,11 @@ To verify reproducibility, the code was executed twice with the same seed (10):
 
 All generated statistics were validated against theoretical expectations:
 \begin{itemize}
-    \item \textbf{Uniform (int)}: Empirical mean $\approx 100$ (theoretical: exactly 100) 
-    \item \textbf{Uniform (double)}: Empirical mean $\approx 11.0$ (theoretical: exactly 11.0) 
-    \item \textbf{Normal}: Empirical mean $\approx 15$ (theoretical: exactly 15) 
-    \item \textbf{Exponential}: Empirical mean $\approx 0.05$ (theoretical: exactly 0.05) 
-    \item \textbf{Lognormal}: Empirical mean $\approx 12.4$ (theoretical: $\approx 12.18$) 
+    \item \textbf{Uniform (int)}: Empirical mean $\approx 100$ (theoretical: exactly 100)
+    \item \textbf{Uniform (double)}: Empirical mean $\approx 11.0$ (theoretical: exactly 11.0)
+    \item \textbf{Normal}: Empirical mean $\approx 15$ (theoretical: exactly 15)
+    \item \textbf{Exponential}: Empirical mean $\approx 0.05$ (theoretical: exactly 0.05)
+    \item \textbf{Lognormal}: Empirical mean $\approx 12.4$ (theoretical: $\approx 12.18$)
 \end{itemize}
 
 \section{Conclusion}
@@ -403,19 +403,19 @@ This laboratory exercise successfully demonstrated the fundamental principles of
 
 \begin{enumerate}
     \item \textbf{Reproducibility:} Using a fixed seed (10), identical random sequences are generated every time, confirming the deterministic nature of pseudorandom number generators.
-    
+
     \item \textbf{Convergence:} All five distributions exhibited clear convergence to their theoretical shapes as sample size increased from 10 to 10,000, demonstrating the Law of Large Numbers in practice.
-    
+
     \item \textbf{Distribution Characteristics:} Each distribution showed its expected statistical properties:
-    \begin{itemize}
-        \item Uniform distributions: flat, constant density
-        \item Normal distribution: symmetric, bell-shaped
-        \item Exponential distribution: right-skewed, with exponential decay
-        \item Lognormal distribution: right-skewed with pronounced tail
-    \end{itemize}
-    
+          \begin{itemize}
+              \item Uniform distributions: flat, constant density
+              \item Normal distribution: symmetric, bell-shaped
+              \item Exponential distribution: right-skewed, with exponential decay
+              \item Lognormal distribution: right-skewed with pronounced tail
+          \end{itemize}
+
     \item \textbf{Performance Evaluation Relevance:} These distributions are essential for realistic simulation of computer system processes: uniform for scenario generation, normal for measurement errors, exponential for inter-arrival times, and lognormal for file sizes and response times.
-    
+
     \item \textbf{Implementation Quality:} The Python-based implementation using NumPy and Matplotlib proves efficient and reproducible, providing reliable tools for statistical simulation studies.
 \end{enumerate}
 
