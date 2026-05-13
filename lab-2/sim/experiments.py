@@ -198,6 +198,7 @@ def run_experiment_set(
                 if write_traces and rep == 0:
                     trace_path = output_dir / "traces" / f"{scenario.name}-lambda{lambda_rate:.0f}.csv"
                 metrics = engine.run(trace_path=trace_path)
+                metrics["avg_time_in_servers"] = metrics["avg_response_time"] - metrics["avg_wait_queue"]
                 metrics["scenario"] = scenario.name
                 metrics["replication"] = rep
                 per_rep.append(metrics)
@@ -208,6 +209,7 @@ def run_experiment_set(
                 "avg_n_queue",
                 "avg_wait_queue",
                 "avg_response_time",
+                "avg_time_in_servers",
                 "throughput",
                 "utilization",
                 "drop_probability",
@@ -240,7 +242,7 @@ def run_experiment_set(
         ("avg_n_queue",        "avg_n_queue",        "Average messages in queue"),
         ("avg_response_time",  "avg_response_time",   "Average time in the gateway"),
         ("avg_wait_queue",     "avg_wait_queue",      "Average time in queue"),
-        ("avg_time_in_servers","avg_response_time",   "Average time in the servers"),
+        ("avg_time_in_servers","avg_time_in_servers", "Average time in the servers"),
         ("drop_probability",   "drop_probability",    "Drop probability"),
         ("throughput",         "throughput",          "Throughput (msg/s)"),
         ("utilization",        "utilization",         "Server utilization"),

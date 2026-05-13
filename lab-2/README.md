@@ -1,60 +1,98 @@
 # Lab 2 - Discrete Event Simulator
 
-This project implements a discrete-event simulator for the scenarios:
+This project implements a discrete-event simulator for the queueing scenarios:
 
-- `M/M/1`
-- `M/M/1/4`
-- `M/M/1/8`
-- `M/M/3/8`
+- `M/M/1`   : Single server, infinite capacity
+- `M/M/1/4` : Single server, capacity 4
+- `M/M/1/8` : Single server, capacity 8
+- `M/M/3/8` : Three servers, capacity 8
 
 Implementation choices:
 
 - Capacity `K` means total system capacity (in service + queue), i.e. `M/M/1/K` semantics.
-- 95% confidence intervals are computed from independent replications.
+- 95% confidence intervals are computed from independent replications using the t-distribution.
 - Exponential inter-arrival and service-time generators use `numpy` RNG.
+- Deterministic seeding ensures reproducible results across runs.
 
-## Project Structure
+## Requirements
 
-- `main.py`: CLI entry point
-- `sim/message.py`: Message class
-- `sim/event.py`: Event and EventType
-- `sim/scheduler.py`: event scheduler
-- `sim/client.py`: client arrivals
-- `sim/queue_model.py`: FIFO queue
-- `sim/server.py`: server process
-- `sim/gateway.py`: queue+server orchestration
-- `sim/engine.py`: simulator engine, trace, metrics, class tests
-- `sim/experiments.py`: batch experiments, CSV outputs, plots with CI
+- Python 3.14+
+- [uv](https://docs.astral.sh/uv/) (package manager)
+- numpy, matplotlib
 
-## Install
+Install dependencies:
 
 ```bash
 uv sync
 ```
 
-## Run
+## Usage
 
-Run class smoke tests:
+### Run class-level smoke tests
 
 ```bash
 uv run python main.py test
 ```
 
-Run one simulation:
+### Run a single simulation
 
 ```bash
-uv run python main.py run --lambda-rates 6 --mu-rate 8 --servers 1 --capacity -1 --sim-time 5000 --warmup-fraction 0.1 --seed 1 --trace outputs/traces/single.csv
+uv run python main.py run \
+    --lambda-rates 6 \
+    --mu-rate 8 \
+    --servers 1 \
+    --capacity -1 \
+    --sim-time 5000 \
+    --warmup-fraction 0.1 \
+    --seed 1 \
+    --trace outputs/traces/single.csv
 ```
 
-Run full experiment set with plots:
+### CLI Parameters
+
+| Parameter | Description |
+|-----------|-------------|
+| `--lambda-rates` | Arrival rate(s) in msg/s (default: 6.0). Pass multiple values to create multiple clients, e.g. `--lambda-rates 4 6` runs two clients at 4 msg/s and 6 msg/s. |
+| `--mu-rate` | Service rate per server in msg/s (default: 8.0) |
+| `--servers` | Number of servers (default: 1) |
+| `--capacity` | System capacity, `-1` for infinite (default: -1) |
+| `--sim-time` | Total simulation time in seconds (default: 5000) |
+| `--warmup-fraction` | Fraction of sim-time discarded as warmup (default: 0.1) |
+| `--seed` | RNG seed (default: 1) |
+| `--trace` | Path to write trace CSV (optional) |
+| `--replications` | Number of independent replications (default: 1) |
+
+### Run the full experiment set
+
+Runs all 4 scenarios × 4 λ values × 100 replications (1600 total runs):
 
 ```bash
-uv run python main.py experiments --replications 100 --sim-time 5000 --warmup-fraction 0.1 --output outputs --write-traces
+uv run python main.py experiments \
+    --replications 100 \
+    --sim-time 5000 \
+    --warmup-fraction 0.1 \
+    --output outputs \
+    --write-traces
 ```
 
 ## Output Files
 
-- `outputs/results/raw_replications.csv`
-- `outputs/results/summary.csv`
-- `outputs/plots/*.png`
-- `outputs/traces/*.csv` (optional)
+- `outputs/results/summary.csv` — Aggregated metrics with 95% CI (mean, CI low, CI high, half-width)
+- `outputs/results/raw_replications.csv` — Per-replication raw data for all 1600 runs
+- `outputs/plots/*.png` — 32 plots (8 metrics × 4 scenarios) with error bars and value annotations
+- `outputs/traces/*.csv` — Event traces per scenario (optional, written when `--write-traces` is passed)
+
+## Project Structure
+
+| File | Role |
+|------|------|
+| `main.py` | CLI entry point for tests, single runs, and experiments |
+| `sim/message.py` | Message dataclass (ID, source, destination, timestamp) |
+| `sim/event.py` | Event dataclass and EventType enum (SEND_MSG, RECV_MSG, MSG_DEPT) |
+| `sim/scheduler.py` | Min-heap priority queue for chronological events |
+| `sim/client.py` | Client generating exponential inter-arrival times |
+| `sim/queue_model.py` | FIFO queue |
+| `sim/server.py` | Server with exponential service times |
+| `sim/gateway.py` | Gateway orchestrating queue and server pool |
+| `sim/engine.py` | Main event loop, metrics, traces, class tests |
+| `sim/experiments.py` | Batch runner, CI aggregation, plotting |

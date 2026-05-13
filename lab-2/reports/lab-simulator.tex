@@ -27,9 +27,9 @@ Discrete Event Simulator for Queueing Systems
 
 \section{Introduction}
 
-The objective of this laboratory is to understand performance evaluation of computer systems through discrete-event simulation of queueing models. This work implements a complete object-oriented discrete-event simulator that models the behavior of message-based systems with queuing and service components, specifically implementing the M/M/1, M/M/1/4, M/M/1/8, and M/M/3/8 queueing models.
+The objective of this lab is to understand performance evaluation of computer systems through discrete-event simulation of queueing models. We implemented a discrete-event simulator using an object-oriented design that models message-based systems with queueing and service components. The simulator handles four queueing scenarios: M/M/1, M/M/1/4, M/M/1/8, and M/M/3/8.
 
-Queueing theory is fundamental to performance evaluation of computer systems, communication networks, and data centers. Real systems often operate under randomness: messages arrive at random times (modeled by exponential inter-arrival distributions), and services complete at random durations (modeled by exponential service times). Understanding how these systems perform under varying load conditions is essential for capacity planning and optimization.
+Queueing theory is useful for understanding computer systems, communication networks, and data centers, where randomness is present in both arrival and service processes. By simulating these systems under different load conditions, we can estimate performance metrics and understand system behavior before actual deployment.
 
 This laboratory explores four classic queueing scenarios:
 \begin{itemize}
@@ -54,7 +54,7 @@ For each model, we evaluate performance across varying arrival rates $\lambda \i
               \item Total configurations: 16 (4 scenarios $\times$ 4 arrival rates)
               \item Total replication runs: 1600
           \end{itemize}
-    \item \textbf{Statistical Analysis:} 95\% confidence intervals computed via t-distribution with Welford's algorithm for numerical stability
+    \item \textbf{Statistical Analysis:} 95\% confidence intervals computed via the t-distribution
     \item \textbf{Reproducibility:} Deterministic seeding based on scenario and replication index ensures reproducible results
     \item \textbf{Event Model:}
           \begin{itemize}
@@ -66,32 +66,31 @@ For each model, we evaluate performance across varying arrival rates $\lambda \i
 
 \subsection{Code Repository}
 
-The complete implementation is available at:
+Our implementation is available at:
 
 \begin{center}
     \url{https://github.com/abdulhadihub/cnam-performance-evaluation-course/tree/main/lab-2}
 \end{center}
 
-The repository includes:
+The project includes the following modules:
 \begin{itemize}
-    \item \texttt{sim/message.py} - Message class with ID, source, destination
-    \item \texttt{sim/event.py} - Event class with type (SEND/RECV/DEPT), timestamp, message reference
-    \item \texttt{sim/scheduler.py} - Min-heap based scheduler with O(log n) insertion
-    \item \texttt{sim/client.py} - Client with exponential inter-arrival generation
-    \item \texttt{sim/queue\_model.py} - FIFO queue with configurable capacity
-    \item \texttt{sim/server.py} - Server with exponential service-time generation
-    \item \texttt{sim/gateway.py} - Gateway orchestrating queue+servers, admission control, departure logic
-    \item \texttt{sim/engine.py} - Main simulator loop, metrics collection, trace generation, class tests
-    \item \texttt{sim/experiments.py} - Batch experiment runner, replication aggregation, CI computation, plotting
-    \item \texttt{main.py} - CLI interface for tests, single runs, and experiment sets
-    \item \texttt{outputs/} - Generated traces, results, and plots
+    \item \texttt{sim/message.py} - Message class
+    \item \texttt{sim/event.py} - Event class and EventType enum
+    \item \texttt{sim/scheduler.py} - Min-heap event scheduler
+    \item \texttt{sim/client.py} - Client generating exponential inter-arrival times
+    \item \texttt{sim/queue\_model.py} - FIFO queue
+    \item \texttt{sim/server.py} - Server with exponential service times
+    \item \texttt{sim/gateway.py} - Gateway orchestrating queue and server pool
+    \item \texttt{sim/engine.py} - Main event loop and metrics collection
+    \item \texttt{sim/experiments.py} - Batch runner and plotting
+    \item \texttt{main.py} - CLI entry point
 \end{itemize}
 
 \section{System Architecture}
 
 \subsection{Design Overview}
 
-The simulator follows a classical discrete-event simulation architecture:
+The simulator works as follows:
 
 \begin{enumerate}
     \item \textbf{Scheduler:} Maintains events in chronological order. Uses a min-heap to achieve O(log n) insertion without full re-sorting.
@@ -106,7 +105,7 @@ The simulator follows a classical discrete-event simulation architecture:
 
 \subsubsection{Capacity Convention}
 
-For M/M/1/K models, capacity $K$ represents the total number of entities allowed in the system (both in queue and in service). This is the standard M/M/1/K convention:
+In our M/M/1/K models, the capacity $K$ is the total number of entities allowed in the system at any time (including both the one in service and those waiting in queue):
 \begin{itemize}
     \item M/M/1: No capacity limit
     \item M/M/1/4: Maximum 4 entities total (if all 4 are occupied, new arrivals are dropped)
@@ -160,7 +159,7 @@ After warmup period, the simulator computes:
               N_q = \frac{1}{T} \int_0^T N_q(t) \, dt
           \end{equation}
 
-    \item \textbf{Average Server Utilization:} Fraction of time at least one server is busy
+    \item \textbf{Average Server Utilization:} Per-server utilization (fraction of time each server is busy, averaged across all servers)
           \begin{equation}
               \rho = \frac{\text{Total server busy time}}{T \times \text{Number of servers}}
           \end{equation}
@@ -217,7 +216,7 @@ where:
 
 \subsubsection{Theoretical Background}
 
-The M/M/1 queue is the simplest and most studied queueing model. Under steady state with $\rho = \lambda/\mu < 1$, theoretical results are well-known:
+The M/M/1 queue has well-known analytical results when the system is stable ($\rho = \lambda/\mu < 1$):
 
 \begin{itemize}
     \item Average system occupancy: $N_s = \frac{\rho}{1 - \rho}$
@@ -409,6 +408,18 @@ For M/M/1/4 (capacity 4):
 \end{itemize}
 
 \subsection{M/M/1/8: Single Server with Capacity 8}
+
+\subsubsection{Theoretical Background}
+
+This model follows the same M/M/1/K formulation as M/M/1/4, but with capacity $K = 8$ instead of 4. The larger buffer allows more queued messages before blocking occurs:
+
+\begin{itemize}
+    \item Loss probability: $P_K = (1-\rho) \rho^K / (1 - \rho^{K+1})$
+    \item Effective arrival rate: $\lambda_{\text{eff}} = \lambda(1 - P_K)$
+    \item With $\mu = 8$, the server reaches saturation at $\lambda \ge 8$
+\end{itemize}
+
+The extra buffer space (4 more slots compared to M/M/1/4) reduces the drop probability at moderate loads, but the system still experiences losses once the buffer is exhausted.
 
 \subsubsection{Average System Occupancy}
 
@@ -615,7 +626,7 @@ Key observations:
 
 \subsection{Load Dependency}
 
-All metrics exhibit strong load dependency:
+All metrics depend strongly on the arrival rate:
 
 \begin{itemize}
     \item \textbf{Low Load ($\lambda = 4$):} All models behave similarly; capacity and parallelism constraints are not active. Queue waits are minimal.
@@ -664,47 +675,47 @@ Generated metrics were validated against queueing theory predictions and intuiti
 
     \item \textbf{Throughput Check:} Measured throughput never exceeds service capacity $\mu \times \text{servers}$ or effective capacity due to losses.
 
-    \item \textbf{Load Dependency:} Metrics increase monotonically with arrival rate, as expected.
+    \item \textbf{Load Dependency:} As expected, metrics increase as the arrival rate goes up.
 
-    \item \textbf{Server Utilization:} Approaches theoretical values. For example, at $\lambda = 6, \mu = 8$:
+    \item \textbf{Server Utilization:} Matches the theoretical value. For example, at $\lambda = 6, \mu = 8$:
           \begin{equation}
               \rho_{\text{theory}} = \frac{6}{8} = 0.75
           \end{equation}
-          Simulation yields $\rho_{\text{sim}} \approx 0.75$, confirming correctness.
+          Our simulation gives $\rho_{\text{sim}} \approx 0.75$, which confirms correctness.
 
     \item \textbf{Multi-Server Advantage:} M/M/3/8 consistently outperforms M/M/1/8 (lower delays, higher throughput, zero losses) due to parallel service.
 \end{enumerate}
 
 \section{Conclusion}
 
-This laboratory successfully implements a complete discrete-event simulator for queueing systems and evaluates the performance of four classic models under varying load.
+In this lab, we built and used a discrete-event simulator to evaluate the performance of four queueing models under varying load.
 
 \subsection{Key Findings}
 
 \begin{enumerate}
-    \item \textbf{Model Behavior:} All four models exhibit expected behavior consistent with queueing theory. Metrics show proper load dependency, stability properties, and the impact of capacity constraints.
+    \item \textbf{Model Behavior:} All four models behave as expected from queueing theory. Metrics respond to load changes, capacity constraints, and the number of servers as predicted.
 
-    \item \textbf{Impact of Parallelism:} Adding servers (M/M/3 vs. M/M/1) dramatically improves performance, enabling the system to handle higher loads with low latency.
+    \item \textbf{Impact of Parallelism:} Adding more servers (M/M/3 vs. M/M/1) improves performance significantly, allowing the system to handle higher loads with lower latency.
 
-    \item \textbf{Capacity Trade-offs:} Finite-capacity systems protect against buffer exhaustion but incur losses and reduced throughput under high load. Larger buffers (K=8 vs. K=4) improve throughput but at the cost of potentially longer queue waits.
+    \item \textbf{Capacity Trade-offs:} Finite-capacity systems prevent buffer overflow but drop messages under high load. Larger buffers (K=8 vs. K=4) reduce drops but increase queue wait times.
 
-    \item \textbf{Stability and Transient Behavior:} The M/M/1 model with $\lambda \ge \mu$ exhibits unstable behavior where the queue grows over the simulation horizon. Finite buffers (M/M/1/K) prevent unbounded growth but incur losses.
+    \item \textbf{Stability:} The M/M/1 model with $\lambda \ge \mu$ is unstable and the queue keeps growing during the simulation. Adding a finite buffer prevents unbounded growth but causes losses.
 
-    \item \textbf{Confidence Intervals:} All metrics are reported with 95\% CI, demonstrating reproducibility and statistical rigor. CI widths increase with load, reflecting increased variability in high-stress conditions.
+    \item \textbf{Confidence Intervals:} We report all metrics with 95\% CI. The intervals are wider at higher loads, which reflects the increased randomness under stress.
 
-    \item \textbf{Implementation Quality:} The OOP design enables clean separation of concerns, easy testing, and straightforward extensions (e.g., priority queues, non-exponential service times, load-dependent routing).
+    \item \textbf{Implementation:} The object-oriented design made it straightforward to separate concerns and test each component individually.
 \end{enumerate}
 
 \subsection{Practical Implications}
 
 \begin{enumerate}
-    \item \textbf{Capacity Planning:} Organizations can use this simulator to estimate required server counts and buffer sizes to meet target loss rates and response-time SLAs.
+    \item \textbf{Capacity Planning:} This kind of simulation could help estimate how many servers and how much buffer space are needed to meet target loss rates and response times.
 
-    \item \textbf{Load Balancing:} The superior performance of multi-server systems reinforces the importance of load balancing in distributed systems.
+    \item \textbf{Load Balancing:} The results show that distributing traffic across multiple servers improves performance, which is why load balancing is important in real systems.
 
-    \item \textbf{Admission Control:} Finite-capacity models demonstrate the need for admission control mechanisms in overloaded systems.
+    \item \textbf{Admission Control:} When the system is overloaded, some mechanism for rejecting requests (like the finite buffer does) prevents complete breakdown.
 
-    \item \textbf{Peak Load Handling:} Understanding the transient behavior during load spikes helps in designing resilient systems.
+    \item \textbf{Peak Load:} The M/M/1 results at $\lambda = 12$ show what happens during traffic spikes. Systems need some form of protection when arrival rates exceed service capacity.
 \end{enumerate}
 
 \section{Reproducibility}

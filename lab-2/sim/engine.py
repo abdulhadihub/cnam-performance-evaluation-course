@@ -272,6 +272,8 @@ class Engine:
             else 0.0
         )
 
+        avg_time_in_servers = avg_response - avg_wait_queue
+
         return {
             "lambda": self.config.lambda_rate,
             "num_clients": len(self.clients),
@@ -287,6 +289,7 @@ class Engine:
             "avg_n_queue": avg_n_queue,
             "avg_wait_queue": avg_wait_queue,
             "avg_response_time": avg_response,
+            "avg_time_in_servers": avg_time_in_servers,
             "throughput": throughput,
             "utilization": utilization,
             "drop_probability": drop_prob,
