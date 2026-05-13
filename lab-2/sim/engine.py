@@ -198,6 +198,10 @@ class Engine:
             server_id=event.server_id,
             next_event_id=self._next_event_id,
         )
+        # Gateway computes response_time as departure - created_at, where
+        # created_at is the SEND time.  Subtract the 1s propagation delay
+        # so that response_time starts at RECV (arrival at the gateway).
+        response_time -= self.config.propagation_delay
         if event.event_time >= self._warmup_time:
             self.departures_after_warmup += 1
             self.total_queue_wait += queue_wait

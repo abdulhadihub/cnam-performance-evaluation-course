@@ -303,9 +303,9 @@ For our scenario with $\mu = 8$:
 For the M/M/1 queue:
 
 \begin{itemize}
-    \item \textbf{$\lambda = 4$ (low load):} System remains lightly loaded with $\rho = 0.5$. Average occupancy is about 1 entity, and queue waits are minimal ($\sim 0.05$ seconds). Throughput matches arrival rate closely.
+    \item \textbf{$\lambda = 4$ (low load):} System remains lightly loaded with $\rho = 0.5$. Average occupancy is about 1 entity, and queue waits are minimal ($\sim 0.12$ seconds). Throughput matches arrival rate closely.
 
-    \item \textbf{$\lambda = 6$ (moderate load):} System is moderately loaded with $\rho = 0.75$. Average occupancy rises to $\sim 3$ entities, and queue wait becomes noticeable ($\sim 0.35$ seconds). Throughput remains close to arrival rate.
+    \item \textbf{$\lambda = 6$ (moderate load):} System is moderately loaded with $\rho = 0.75$. Average occupancy rises to $\sim 3$ entities, and queue wait becomes noticeable ($\sim 0.38$ seconds). Throughput remains close to arrival rate.
 
     \item \textbf{$\lambda = 8$ (saturation):} System reaches saturation ($\rho = 1.0$). Queue grows quickly, and both occupancy and wait times increase significantly. Throughput saturates around $\mu = 8$ messages/s.
 
@@ -396,11 +396,11 @@ With capacity 4 and $\mu = 8$, the system blocks when 4 entities are present.
 For M/M/1/4 (capacity 4):
 
 \begin{itemize}
-    \item \textbf{Low load ($\lambda \le 6$):} Capacity is not a constraint. The system behaves similarly to M/M/1, with drop probability near zero and metrics comparable to the unlimited queue model.
+    \item \textbf{Low load ($\lambda = 4$):} Capacity is barely a constraint at this load. Drop probability is low ($\sim 3$\%) and metrics are comparable to the unlimited M/M/1 model.
 
-    \item \textbf{Higher loads ($\lambda \ge 8$):} Capacity becomes a binding constraint. Losses begin to occur, capping the system occupancy at 4 and limiting throughput. The drop probability increases with load.
+    \item \textbf{Moderate loads ($\lambda = 6, 8$):} Drops become noticeable: $\sim 10\%$ at $\lambda = 6$ and $\sim 20\%$ at $\lambda = 8$. System occupancy is capped by the limit of 4, so throughput no longer tracks the arrival rate.
 
-    \item \textbf{$\lambda = 12$ (high overload):} Drop probability reaches $\sim 0.5$ or higher, meaning half the arriving requests are turned away. The effective throughput is reduced accordingly, stabilizing around the service capacity times the rejection rate.
+    \item \textbf{$\lambda = 12$ (high overload):} Drop probability reaches $\sim 0.38$, meaning over a third of arriving requests are turned away. The effective throughput is reduced accordingly.
 
     \item \textbf{Queue Statistics:} Average queue length is capped by the capacity constraint. The average wait time may be lower than M/M/1 due to fewer arrivals being accepted.
 
