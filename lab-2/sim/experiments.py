@@ -129,10 +129,17 @@ def _plot_metric(
     ax.grid(True, alpha=0.3)
     ax.tick_params(labelsize=14)
 
+    # Expand y-limits so annotations stay within the frame
+    y_min = min(m - e for m, e in zip(means, errors))
+    y_max = max(m + e for m, e in zip(means, errors))
+    y_range = y_max - y_min if y_max > y_min else 1.0
+    ax.set_ylim(y_min - y_range * 0.20, y_max + y_range * 0.20)
+
+    # Recalculate offset from expanded limits
+    y_min2, y_max2 = ax.get_ylim()
+    offset = (y_max2 - y_min2) * 0.04
+
     # Annotate each point with mean above upper CI cap and ±CI below lower cap
-    y_min, y_max = ax.get_ylim()
-    y_range = y_max - y_min
-    offset = y_range * 0.06
     for x, y, e in zip(lambdas, means, errors):
         ax.annotate(_fmt_val(y), (x, y + e + offset),
                     ha="center", va="bottom", fontsize=10,
