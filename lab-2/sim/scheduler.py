@@ -7,6 +7,12 @@ from .event import Event
 
 @dataclass
 class Scheduler:
+    """
+    Priority queue of events ordered by time, implemented with a min-heap.
+    - add_event: O(log n) insertion — avoids costly full re-sorts
+    - get_event: pops the earliest event (the next to be processed)
+    - _seq: tie-breaker for events at the same timestamp (FIFO among equals)
+    """
     _events: list[tuple[float, int, Event]] = field(default_factory=list)
     _seq: object = field(default_factory=count)
     _current_time: float = 0.0

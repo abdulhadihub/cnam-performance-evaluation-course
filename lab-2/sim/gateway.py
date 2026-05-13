@@ -9,6 +9,16 @@ from .server import Server
 
 @dataclass
 class Gateway:
+    """
+    Orchestrates the queue + server pool.
+    - Receives messages (handle_receive): admits if capacity permits,
+      otherwise drops. Directs to idle server if available, otherwise queues.
+    - Handles departures (handle_departure): completes service, dequeues
+      next message from queue if any, updates wait/response time metrics.
+    - system_capacity = total system limit (in-service + in-queue).
+      None means infinite (M/M/1), a finite value means M/M/c/K semantics.
+    - n_system tracks total messages currently in the gateway (queue + service).
+    """
     gateway_id: int
     num_servers: int
     mu_rate: float
@@ -72,6 +82,7 @@ class Gateway:
         message: Message,
         next_event_id: Callable[[], int],
     ) -> tuple[list[Event], bool]:
+        """Process an arriving message: admit (direct-service or queue) or drop."""
         if not self._can_admit():
             self.dropped_messages += 1
             return [], True
@@ -98,6 +109,7 @@ class Gateway:
         server_id: int,
         next_event_id: Callable[[], int],
     ) -> tuple[list[Event], Message, float, float]:
+        """Complete service: free the server, pull next message from queue if any."""
         server = self.servers[server_id]
         message, _, queue_wait = server.complete_service()
         self.n_system -= 1

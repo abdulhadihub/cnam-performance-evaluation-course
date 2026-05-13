@@ -7,6 +7,15 @@ from .message import Message
 
 @dataclass
 class Server:
+    """
+    A single server with exponential service times.
+    - mu_rate: average service rate in msg/s
+    - service times are drawn from Exponential(1/mu_rate)
+      so the mean service time = 1/mu_rate seconds
+    - busy flag tracks whether this server is currently processing a message
+    - queue_wait_time records how long the current message waited in queue
+      (used to compute avg wait time at departure)
+    """
     server_id: int
     mu_rate: float
     rng: Generator

@@ -15,11 +15,19 @@ from .scheduler import Scheduler
 
 @dataclass(slots=True)
 class EngineConfig:
+    """
+    Configuration for a single simulation run.
+    - lambda_rates: list of arrival rates (one per client). Sum is total arrival rate.
+    - mu_rate: service rate per server
+    - system_capacity: max messages allowed in gateway (None = infinite, M/M/1)
+    - propagation_delay: fixed delay between SEND_MSG and RECV_MSG (1 second)
+    - warmup_fraction: portion of sim_time discarded before collecting metrics
+    """
     lambda_rates: list[float]
     mu_rate: float = 8.0
     num_servers: int = 1
     system_capacity: int | None = None
-    simulation_time: float = 20_000.0
+    simulation_time: float = 5_000.0
     warmup_fraction: float = 0.1
     propagation_delay: float = 1.0
     seed: int = 1
@@ -30,6 +38,15 @@ class EngineConfig:
 
 
 class Engine:
+    """
+    Main simulation loop and metrics collector.
+    - Creates clients, gateway, and scheduler
+    - Runs the event loop: extracts next event, updates state, dispatches
+    - Accumulates time-averaged metrics (area_n_system, area_n_queue, area_busy_servers)
+      using the rectangle rule between consecutive events
+    - Collects per-departure metrics (queue wait, response time) after warmup
+    - Generates optional trace CSV
+    """
     def __init__(self, config: EngineConfig) -> None:
         self.config = config
         self.rng = np.random.default_rng(config.seed)
@@ -76,6 +93,14 @@ class Engine:
         return next(self._message_id)
 
     def _accumulate_state(self, new_time: float) -> None:
+        """
+        Update time-weighted areas using the rectangle rule.
+        Only accumulates after warmup period ends and before sim_time ends.
+        This gives us the integrals needed for time-averaged metrics:
+          avg_n_system = area_n_system / measured_time
+          avg_n_queue  = area_n_queue  / measured_time
+          utilization  = area_busy_servers / (num_servers * measured_time)
+        """
         start = max(self._last_time, self._warmup_time)
         end = min(new_time, self.config.simulation_time)
         if end > start:
@@ -182,6 +207,17 @@ class Engine:
             self.scheduler.add_event(next_event)
 
     def run(self, trace_path: Path | None = None) -> dict[str, float | int]:
+        """
+        Main event loop:
+        1. Schedule initial SEND_MSG events for all clients
+        2. Repeatedly pop the next event until simulation_time expires
+        3. Dispatch to _process_send / _process_recv / _process_departure
+        4. Accumulate state at each event boundary
+        5. After the loop, compute time-averaged and count-based metrics
+
+        Returns a dict of all metrics (avg_n_system, avg_n_queue, utilization,
+        avg_wait_queue, avg_response_time, throughput, drop_probability, etc.)
+        """
         self._schedule_initial_send()
 
         while True:

@@ -6,6 +6,12 @@ from .message import Message
 
 @dataclass
 class SimQueue:
+    """
+    FIFO queue storing (message, arrival_time) pairs.
+    - arrival_time is the time the message entered the queue
+      (used at departure to compute queue_wait = departure_time - queue_arrival_time)
+    - implemented with deque for O(1) push/pop
+    """
     _items: deque[tuple[Message, float]] = field(default_factory=deque)
 
     def push(self, message: Message, arrival_time: float) -> None:

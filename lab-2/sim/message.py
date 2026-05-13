@@ -3,6 +3,13 @@ from dataclasses import dataclass
 
 @dataclass(slots=True)
 class Message:
+    """
+    Represents a message traveling through the system.
+    - created_at: timestamp when the message was created (used to compute
+      response time = departure_time - created_at)
+    - messages are created by Client, delivered to the Gateway, and
+      depart when service completes
+    """
     message_id: int
     source: int
     destination: int

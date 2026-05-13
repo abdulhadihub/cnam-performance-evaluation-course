@@ -7,6 +7,12 @@ from .message import Message
 
 @dataclass
 class Client:
+    """
+    Generates messages at exponentially distributed inter-arrival times.
+    - lambda_rate: average arrival rate in msg/s
+    - inter-arrival times are drawn from Exponential(1/lambda_rate)
+      so the mean inter-arrival time = 1/lambda_rate seconds
+    """
     client_id: int
     lambda_rate: float
     destination: int

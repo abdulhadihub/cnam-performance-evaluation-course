@@ -43,13 +43,13 @@ uv run python main.py test
 Run one simulation:
 
 ```bash
-uv run python main.py run --lambda-rate 6 --mu-rate 8 --servers 1 --capacity -1 --sim-time 20000 --warmup-fraction 0.1 --seed 1 --trace outputs/traces/single.csv
+uv run python main.py run --lambda-rates 6 --mu-rate 8 --servers 1 --capacity -1 --sim-time 5000 --warmup-fraction 0.1 --seed 1 --trace outputs/traces/single.csv
 ```
 
 Run full experiment set with plots:
 
 ```bash
-uv run python main.py experiments --replications 30 --sim-time 20000 --warmup-fraction 0.1 --output outputs --write-traces
+uv run python main.py experiments --replications 100 --sim-time 5000 --warmup-fraction 0.1 --output outputs --write-traces
 ```
 
 ## Output Files

@@ -48,11 +48,11 @@ For each model, we evaluate performance across varying arrival rates $\lambda \i
     \item \textbf{Simulator Architecture:} Object-oriented design with Message, Event, Scheduler, Client, Queue, Server, and Gateway classes
     \item \textbf{Simulation Parameters:}
           \begin{itemize}
-              \item Simulation time per run: 20,000 seconds
-              \item Warmup period: 2,000 seconds (10\% of simulation time)
-              \item Independent replications: 30 runs per configuration
+              \item Simulation time per run: 5,000 seconds
+              \item Warmup period: 500 seconds (10\% of simulation time)
+              \item Independent replications: 100 runs per configuration
               \item Total configurations: 16 (4 scenarios $\times$ 4 arrival rates)
-              \item Total replication runs: 480
+              \item Total replication runs: 1600
           \end{itemize}
     \item \textbf{Statistical Analysis:} 95\% confidence intervals computed via t-distribution with Welford's algorithm for numerical stability
     \item \textbf{Reproducibility:} Deterministic seeding based on scenario and replication index ensures reproducible results
@@ -179,9 +179,14 @@ After warmup period, the simulator computes:
               W_q = \frac{\sum \text{Wait times}}{N_{\text{departures}}}
           \end{equation}
 
-    \item \textbf{Average Response Time:} Mean time from arrival to departure
+    \item \textbf{Average Response Time:} Mean time from arrival to departure (total time in gateway, queue + service)
           \begin{equation}
               W = \frac{\sum (\text{Departure time} - \text{Arrival time})}{N_{\text{departures}}}
+          \end{equation}
+
+    \item \textbf{Average Service Time:} Mean time spent in the servers (response time minus queue wait)
+          \begin{equation}
+              W_{\text{svr}} = W - W_q
           \end{equation}
 
     \item \textbf{Drop Probability (capacity-limited systems):} Fraction of arrivals that are dropped
@@ -200,10 +205,10 @@ For each metric and configuration, we compute a two-sided 95\% confidence interv
 
 where:
 \begin{itemize}
-    \item $\bar{x}$ is the sample mean across 30 replications
+    \item $\bar{x}$ is the sample mean across 100 replications
     \item $s$ is the sample standard deviation
-    \item $t_{0.975}(n-1)$ is the two-sided t critical value (e.g., $t_{0.975}(29) \approx 2.045$)
-    \item $n = 30$ is the number of replications
+    \item $t_{0.975}(n-1)$ is the two-sided t critical value (for $n > 30$, the normal approximation $z_{0.975} \approx 1.96$ is used)
+    \item $n = 100$ is the number of replications
 \end{itemize}
 
 \section{Results}
@@ -235,25 +240,52 @@ For our scenario with $\mu = 8$:
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.75\textwidth]{plots/MM1-avg_n_system.png}
+    \includegraphics[width=0.75\textwidth]{../outputs/plots/MM1-avg_n_system.png}
     \caption{M/M/1: Average system occupancy vs. arrival rate. With 95\% CI error bars.}
     \label{fig:mm1-n_system}
+\end{figure}
+
+\subsubsection{Average Messages in Queue}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\textwidth]{../outputs/plots/MM1-avg_n_queue.png}
+    \caption{M/M/1: Average number of messages in queue vs. arrival rate. With 95\% CI error bars.}
+    \label{fig:mm1-n_queue}
 \end{figure}
 
 \subsubsection{Average Queue Waiting Time}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.75\textwidth]{plots/MM1-avg_wait_queue.png}
+    \includegraphics[width=0.75\textwidth]{../outputs/plots/MM1-avg_wait_queue.png}
     \caption{M/M/1: Average queue wait time vs. arrival rate. With 95\% CI error bars.}
     \label{fig:mm1-wait_queue}
+\end{figure}
+
+\subsubsection{Average Time in the Gateway}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\textwidth]{../outputs/plots/MM1-avg_response_time.png}
+    \caption{M/M/1: Average time in the gateway vs. arrival rate. With 95\% CI error bars.}
+    \label{fig:mm1-response_time}
+\end{figure}
+
+\subsubsection{Average Time in the Servers}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\textwidth]{../outputs/plots/MM1-avg_time_in_servers.png}
+    \caption{M/M/1: Average time in the servers vs. arrival rate. With 95\% CI error bars.}
+    \label{fig:mm1-time_in_servers}
 \end{figure}
 
 \subsubsection{Throughput}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.75\textwidth]{plots/MM1-throughput.png}
+    \includegraphics[width=0.75\textwidth]{../outputs/plots/MM1-throughput.png}
     \caption{M/M/1: Throughput vs. arrival rate. With 95\% CI error bars.}
     \label{fig:mm1-throughput}
 \end{figure}
@@ -262,7 +294,7 @@ For our scenario with $\mu = 8$:
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.75\textwidth]{plots/MM1-drop_probability.png}
+    \includegraphics[width=0.75\textwidth]{../outputs/plots/MM1-drop_probability.png}
     \caption{M/M/1: Drop probability vs. arrival rate. With 95\% CI error bars. (Always zero for unlimited capacity.)}
     \label{fig:mm1-drop}
 \end{figure}
@@ -301,25 +333,52 @@ With capacity 4 and $\mu = 8$, the system blocks when 4 entities are present.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.75\textwidth]{plots/MM1K4-avg_n_system.png}
+    \includegraphics[width=0.75\textwidth]{../outputs/plots/MM1K4-avg_n_system.png}
     \caption{M/M/1/4: Average system occupancy vs. arrival rate. With 95\% CI error bars.}
     \label{fig:mm1k4-n_system}
+\end{figure}
+
+\subsubsection{Average Messages in Queue}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\textwidth]{../outputs/plots/MM1K4-avg_n_queue.png}
+    \caption{M/M/1/4: Average number of messages in queue vs. arrival rate. With 95\% CI error bars.}
+    \label{fig:mm1k4-n_queue}
 \end{figure}
 
 \subsubsection{Average Queue Waiting Time}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.75\textwidth]{plots/MM1K4-avg_wait_queue.png}
+    \includegraphics[width=0.75\textwidth]{../outputs/plots/MM1K4-avg_wait_queue.png}
     \caption{M/M/1/4: Average queue wait time vs. arrival rate. With 95\% CI error bars.}
     \label{fig:mm1k4-wait_queue}
+\end{figure}
+
+\subsubsection{Average Time in the Gateway}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\textwidth]{../outputs/plots/MM1K4-avg_response_time.png}
+    \caption{M/M/1/4: Average time in the gateway vs. arrival rate. With 95\% CI error bars.}
+    \label{fig:mm1k4-response_time}
+\end{figure}
+
+\subsubsection{Average Time in the Servers}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\textwidth]{../outputs/plots/MM1K4-avg_time_in_servers.png}
+    \caption{M/M/1/4: Average time in the servers vs. arrival rate. With 95\% CI error bars.}
+    \label{fig:mm1k4-time_in_servers}
 \end{figure}
 
 \subsubsection{Throughput}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.75\textwidth]{plots/MM1K4-throughput.png}
+    \includegraphics[width=0.75\textwidth]{../outputs/plots/MM1K4-throughput.png}
     \caption{M/M/1/4: Throughput vs. arrival rate. With 95\% CI error bars.}
     \label{fig:mm1k4-throughput}
 \end{figure}
@@ -328,7 +387,7 @@ With capacity 4 and $\mu = 8$, the system blocks when 4 entities are present.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.75\textwidth]{plots/MM1K4-drop_probability.png}
+    \includegraphics[width=0.75\textwidth]{../outputs/plots/MM1K4-drop_probability.png}
     \caption{M/M/1/4: Drop probability vs. arrival rate. With 95\% CI error bars.}
     \label{fig:mm1k4-drop}
 \end{figure}
@@ -355,25 +414,52 @@ For M/M/1/4 (capacity 4):
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.75\textwidth]{plots/MM1K8-avg_n_system.png}
+    \includegraphics[width=0.75\textwidth]{../outputs/plots/MM1K8-avg_n_system.png}
     \caption{M/M/1/8: Average system occupancy vs. arrival rate. With 95\% CI error bars.}
     \label{fig:mm1k8-n_system}
+\end{figure}
+
+\subsubsection{Average Messages in Queue}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\textwidth]{../outputs/plots/MM1K8-avg_n_queue.png}
+    \caption{M/M/1/8: Average number of messages in queue vs. arrival rate. With 95\% CI error bars.}
+    \label{fig:mm1k8-n_queue}
 \end{figure}
 
 \subsubsection{Average Queue Waiting Time}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.75\textwidth]{plots/MM1K8-avg_wait_queue.png}
+    \includegraphics[width=0.75\textwidth]{../outputs/plots/MM1K8-avg_wait_queue.png}
     \caption{M/M/1/8: Average queue wait time vs. arrival rate. With 95\% CI error bars.}
     \label{fig:mm1k8-wait_queue}
+\end{figure}
+
+\subsubsection{Average Time in the Gateway}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\textwidth]{../outputs/plots/MM1K8-avg_response_time.png}
+    \caption{M/M/1/8: Average time in the gateway vs. arrival rate. With 95\% CI error bars.}
+    \label{fig:mm1k8-response_time}
+\end{figure}
+
+\subsubsection{Average Time in the Servers}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\textwidth]{../outputs/plots/MM1K8-avg_time_in_servers.png}
+    \caption{M/M/1/8: Average time in the servers vs. arrival rate. With 95\% CI error bars.}
+    \label{fig:mm1k8-time_in_servers}
 \end{figure}
 
 \subsubsection{Throughput}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.75\textwidth]{plots/MM1K8-throughput.png}
+    \includegraphics[width=0.75\textwidth]{../outputs/plots/MM1K8-throughput.png}
     \caption{M/M/1/8: Throughput vs. arrival rate. With 95\% CI error bars.}
     \label{fig:mm1k8-throughput}
 \end{figure}
@@ -382,7 +468,7 @@ For M/M/1/4 (capacity 4):
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.75\textwidth]{plots/MM1K8-drop_probability.png}
+    \includegraphics[width=0.75\textwidth]{../outputs/plots/MM1K8-drop_probability.png}
     \caption{M/M/1/8: Drop probability vs. arrival rate. With 95\% CI error bars.}
     \label{fig:mm1k8-drop}
 \end{figure}
@@ -418,25 +504,52 @@ Key differences from single-server models:
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.75\textwidth]{plots/MM3K8-avg_n_system.png}
+    \includegraphics[width=0.75\textwidth]{../outputs/plots/MM3K8-avg_n_system.png}
     \caption{M/M/3/8: Average system occupancy vs. arrival rate. With 95\% CI error bars.}
     \label{fig:mm3k8-n_system}
+\end{figure}
+
+\subsubsection{Average Messages in Queue}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\textwidth]{../outputs/plots/MM3K8-avg_n_queue.png}
+    \caption{M/M/3/8: Average number of messages in queue vs. arrival rate. With 95\% CI error bars.}
+    \label{fig:mm3k8-n_queue}
 \end{figure}
 
 \subsubsection{Average Queue Waiting Time}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.75\textwidth]{plots/MM3K8-avg_wait_queue.png}
+    \includegraphics[width=0.75\textwidth]{../outputs/plots/MM3K8-avg_wait_queue.png}
     \caption{M/M/3/8: Average queue wait time vs. arrival rate. With 95\% CI error bars.}
     \label{fig:mm3k8-wait_queue}
+\end{figure}
+
+\subsubsection{Average Time in the Gateway}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\textwidth]{../outputs/plots/MM3K8-avg_response_time.png}
+    \caption{M/M/3/8: Average time in the gateway vs. arrival rate. With 95\% CI error bars.}
+    \label{fig:mm3k8-response_time}
+\end{figure}
+
+\subsubsection{Average Time in the Servers}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\textwidth]{../outputs/plots/MM3K8-avg_time_in_servers.png}
+    \caption{M/M/3/8: Average time in the servers vs. arrival rate. With 95\% CI error bars.}
+    \label{fig:mm3k8-time_in_servers}
 \end{figure}
 
 \subsubsection{Throughput}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.75\textwidth]{plots/MM3K8-throughput.png}
+    \includegraphics[width=0.75\textwidth]{../outputs/plots/MM3K8-throughput.png}
     \caption{M/M/3/8: Throughput vs. arrival rate. With 95\% CI error bars.}
     \label{fig:mm3k8-throughput}
 \end{figure}
@@ -445,7 +558,7 @@ Key differences from single-server models:
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.75\textwidth]{plots/MM3K8-drop_probability.png}
+    \includegraphics[width=0.75\textwidth]{../outputs/plots/MM3K8-drop_probability.png}
     \caption{M/M/3/8: Drop probability vs. arrival rate. With 95\% CI error bars.}
     \label{fig:mm3k8-drop}
 \end{figure}
@@ -607,7 +720,7 @@ To reproduce results:
 \begin{enumerate}
     \item Clone the repository
     \item Install dependencies: \texttt{uv sync}
-    \item Run experiments: \texttt{uv run python main.py experiments}
+    \item Run experiments: \texttt{uv run python main.py experiments --replications 100 --sim-time 5000}
     \item Inspect outputs in \texttt{outputs/results/} and \texttt{outputs/plots/}
 \end{enumerate}
 

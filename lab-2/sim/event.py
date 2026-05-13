@@ -5,6 +5,12 @@ from .message import Message
 
 
 class EventType(str, Enum):
+    """
+    Three event types drive the simulation:
+      SEND_MSG — Client generates a message (scheduled at next inter-arrival time)
+      RECV_MSG — Gateway receives a message (after propagation delay from SEND)
+      MSG_DEPT — Gateway completes service on a message (after service time)
+    """
     SEND_MSG = "SEND_MSG"
     RECV_MSG = "RECV_MSG"
     MSG_DEPT = "MSG_DEPT"
@@ -12,6 +18,14 @@ class EventType(str, Enum):
 
 @dataclass(slots=True)
 class Event:
+    """
+    An event in the discrete-event simulation.
+    - event_time: scheduled time for this event
+    - event_type: SEND_MSG / RECV_MSG / MSG_DEPT
+    - message: the message this event refers to
+    - node: which component processes this event (client_id or gateway_id)
+    - server_id: set only for MSG_DEPT to identify which server completed service
+    """
     event_id: int
     event_time: float
     event_type: EventType
