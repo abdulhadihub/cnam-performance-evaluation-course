@@ -94,6 +94,18 @@ def _write_csv(path: Path, rows: list[dict[str, float | int | str]]) -> None:
         writer.writerows(rows)
 
 
+def _fmt_val(v: float) -> str:
+    """Format a metric value with appropriate precision."""
+    if abs(v) < 0.01:
+        return f"{v:.4f}"
+    elif abs(v) < 10:
+        return f"{v:.3f}"
+    elif abs(v) < 1000:
+        return f"{v:.2f}"
+    else:
+        return f"{v:.1f}"
+
+
 def _plot_metric(
     output_dir: Path,
     scenario_name: str,
@@ -104,15 +116,34 @@ def _plot_metric(
     ylabel: str = "",
 ) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
-    plt.figure(figsize=(8, 5))
-    plt.errorbar(lambdas, means, yerr=errors, fmt="o-", capsize=4)
-    plt.xlabel("Arrival rate lambda (msg/s)")
-    plt.ylabel(ylabel or metric)
-    plt.title(f"{scenario_name} - {ylabel or metric} (95% CI)")
-    plt.grid(True, alpha=0.3)
-    plt.tight_layout()
-    plt.savefig(output_dir / f"{scenario_name}-{metric}.png", dpi=150)
-    plt.close()
+    fig, ax = plt.subplots(figsize=(10, 6.5))
+    ax.errorbar(
+        lambdas, means, yerr=errors,
+        fmt="o-", capsize=8, capthick=3, linewidth=2.5,
+        markersize=10, color="#1f77b4", ecolor="#d62728",
+        elinewidth=3, markerfacecolor="#1f77b4",
+    )
+    ax.set_xlabel("Arrival rate λ (msg/s)", fontsize=15, labelpad=10)
+    ax.set_ylabel(ylabel or metric, fontsize=15, labelpad=10)
+    ax.set_title(f"{scenario_name} - {ylabel or metric} (95% CI)", fontsize=16, fontweight="bold", pad=15)
+    ax.grid(True, alpha=0.3)
+    ax.tick_params(labelsize=14)
+
+    # Annotate each point with mean above upper CI cap and ±CI below lower cap
+    y_min, y_max = ax.get_ylim()
+    y_range = y_max - y_min
+    offset = y_range * 0.06
+    for x, y, e in zip(lambdas, means, errors):
+        ax.annotate(_fmt_val(y), (x, y + e + offset),
+                    ha="center", va="bottom", fontsize=10,
+                    fontweight="bold", color="#1f4f7a")
+        ax.annotate(f"±{_fmt_val(e)}", (x, y - e - offset),
+                    ha="center", va="top", fontsize=9,
+                    color="#d62728", fontstyle="italic")
+
+    fig.tight_layout()
+    fig.savefig(output_dir / f"{scenario_name}-{metric}.png", dpi=150)
+    plt.close(fig)
 
 
 def run_experiment_set(
