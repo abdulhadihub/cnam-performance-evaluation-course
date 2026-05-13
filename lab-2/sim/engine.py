@@ -15,7 +15,7 @@ from .scheduler import Scheduler
 
 @dataclass(slots=True)
 class EngineConfig:
-    lambda_rate: float
+    lambda_rates: list[float]
     mu_rate: float = 8.0
     num_servers: int = 1
     system_capacity: int | None = None
@@ -24,13 +24,26 @@ class EngineConfig:
     propagation_delay: float = 1.0
     seed: int = 1
 
+    @property
+    def lambda_rate(self) -> float:
+        return sum(self.lambda_rates)
+
 
 class Engine:
     def __init__(self, config: EngineConfig) -> None:
         self.config = config
         self.rng = np.random.default_rng(config.seed)
         self.scheduler = Scheduler()
-        self.client = Client(client_id=1, lambda_rate=config.lambda_rate, destination=0, rng=self.rng)
+        child_rngs = self.rng.spawn(len(config.lambda_rates))
+        self.clients = [
+            Client(
+                client_id=i + 1,
+                lambda_rate=rate,
+                destination=0,
+                rng=np.random.default_rng(child_rngs[i]),
+            )
+            for i, rate in enumerate(config.lambda_rates)
+        ]
         self.gateway = Gateway(
             gateway_id=0,
             num_servers=config.num_servers,
@@ -85,21 +98,25 @@ class Engine:
         )
 
     def _schedule_initial_send(self) -> None:
-        send_time = self.client.next_interarrival()
-        if send_time > self.config.simulation_time:
-            return
-        msg = self.client.build_message(self._next_message_id(), created_at=send_time)
-        self.scheduler.add_event(
-            Event(
-                event_id=self._next_event_id(),
-                event_time=send_time,
-                event_type=EventType.SEND_MSG,
-                message=msg,
-                node=self.client.client_id,
-                source=msg.source,
-                destination=msg.destination,
+        for client in self.clients:
+            send_time = client.next_interarrival()
+            if send_time > self.config.simulation_time:
+                continue
+            msg = client.build_message(self._next_message_id(), created_at=send_time)
+            self.scheduler.add_event(
+                Event(
+                    event_id=self._next_event_id(),
+                    event_time=send_time,
+                    event_type=EventType.SEND_MSG,
+                    message=msg,
+                    node=client.client_id,
+                    source=msg.source,
+                    destination=msg.destination,
+                )
             )
-        )
+
+    def _client_by_id(self, client_id: int) -> Client:
+        return self.clients[client_id - 1]
 
     def _process_send(self, event: Event) -> None:
         recv_time = event.event_time + self.config.propagation_delay
@@ -116,16 +133,17 @@ class Engine:
                 )
             )
 
-        next_send_time = event.event_time + self.client.next_interarrival()
+        client = self._client_by_id(event.source)
+        next_send_time = event.event_time + client.next_interarrival()
         if next_send_time <= self.config.simulation_time:
-            msg = self.client.build_message(self._next_message_id(), created_at=next_send_time)
+            msg = client.build_message(self._next_message_id(), created_at=next_send_time)
             self.scheduler.add_event(
                 Event(
                     event_id=self._next_event_id(),
                     event_time=next_send_time,
                     event_type=EventType.SEND_MSG,
                     message=msg,
-                    node=self.client.client_id,
+                    node=client.client_id,
                     source=msg.source,
                     destination=msg.destination,
                 )
@@ -220,6 +238,7 @@ class Engine:
 
         return {
             "lambda": self.config.lambda_rate,
+            "num_clients": len(self.clients),
             "mu": self.config.mu_rate,
             "servers": self.config.num_servers,
             "capacity": -1 if self.config.system_capacity is None else self.config.system_capacity,

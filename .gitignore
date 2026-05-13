@@ -1,4 +1,6 @@
-task.md
 *.png
 *.csv
 *.pyc
+
+/README.md
+*.md

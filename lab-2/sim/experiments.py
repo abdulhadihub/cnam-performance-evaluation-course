@@ -135,7 +135,7 @@ def run_experiment_set(
                 seed = base_seed + scenario_idx * 10_000 + int(lambda_rate * 100) + rep
                 engine = Engine(
                     EngineConfig(
-                        lambda_rate=lambda_rate,
+                        lambda_rates=[lambda_rate],
                         mu_rate=mu_rate,
                         num_servers=scenario.num_servers,
                         system_capacity=scenario.system_capacity,
